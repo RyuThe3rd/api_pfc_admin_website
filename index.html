@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Registo de Banco</title>
+    <!-- Tailwind CSS CDN para estilização rápida -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-lg">
+        
+        <!-- Cabeçalho -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-blue-400">Registar Novo Banco</h1>
+            <p class="text-xs text-slate-400 mt-1">Consórcio Blockchain PFC • Gestão de Instituições</p>
+        </div>
+
+        <!-- Formulário -->
+        <form id="registerBankForm" class="space-y-4">
+
+            <!-- ID do Banco -->
+            <div>
+                <label for="bankId" class="block text-xs font-semibold text-slate-300 uppercase mb-1">ID do Banco (bankId)</label>
+                <input type="number" id="bankId" name="bankId" required placeholder="Ex: 101"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
+            </div>
+
+            <!-- Nome da Instituição -->
+            <div>
+                <label for="name" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nome do Banco</label>
+                <input type="text" id="name" name="name" required placeholder="Ex: Banco Comercial de Moçambique"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
+            </div>
+
+            <!-- Chave Mestre (Management Key) -->
+            <div>
+                <label for="managementKey" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Chave Mestre (Management Key)</label>
+                <input type="text" id="managementKey" name="managementKey" required placeholder="0x..."
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-100 focus:outline-none focus:border-blue-500 transition">
+                <span class="text-[10px] text-slate-400">Endereço do cofre/offline autorizado a renovar a chave operacional.</span>
+            </div>
+
+            <!-- Chave Operacional (Operational Key) -->
+            <div>
+                <label for="operationalKey" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Chave Operacional (Operational Key)</label>
+                <input type="text" id="operationalKey" name="operationalKey" required placeholder="0x..."
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-100 focus:outline-none focus:border-blue-500 transition">
+                <span class="text-[10px] text-slate-400">Endereço que a API Spring Boot usará para assinar extratos.</span>
+            </div>
+
+            <!-- Duração de Validade -->
+            <div>
+                <label for="durationInSeconds" class="block text-xs font-semibold text-slate-300 uppercase mb-1">Duração da Licença (Segundos)</label>
+                <div class="flex gap-2">
+                    <input type="number" id="durationInSeconds" name="durationInSeconds" required placeholder="31536000"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-100 focus:outline-none focus:border-blue-500 transition">
+                    <button type="button" onclick="setOneYear()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-2 rounded-lg transition whitespace-nowrap">
+                        1 Ano
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botão de Submissão -->
+            <button type="submit" id="submitBtn"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2 mt-4">
+                <span id="btnText">Registar na Blockchain</span>
+                <span id="btnSpinner" class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            </button>
+        </form>
+
+        <!-- Caixa de Resposta/Erro -->
+        <div id="responseBox" class="mt-6 p-4 rounded-lg hidden text-xs font-mono break-all leading-relaxed"></div>
+    </div>
+
+    <script>
+        // Configuração da URL da tua API no Cloud Run
+        const API_BASE_URL = 'https://api-blockchain-pfc-1021823144662.africa-south1.run.app';
+
+        // Preenche automaticamente 1 ano em segundos (365 dias)
+        function setOneYear() {
+            document.getElementById('durationInSeconds').value = 31536000;
+        }
+
+        document.getElementById('registerBankForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const responseBox = document.getElementById('responseBox');
+
+            // Feedback visual de carregamento
+            submitBtn.disabled = true;
+            btnText.textContent = 'A processar transação...';
+            btnSpinner.classList.remove('hidden');
+            responseBox.classList.add('hidden');
+
+            // Construir o JSON de acordo com o DTO
+            const payload = {
+                bankId: parseInt(document.getElementById('bankId').value, 10),
+                name: document.getElementById('name').value.trim(),
+                managementKey: document.getElementById('managementKey').value.trim(),
+                operationalKey: document.getElementById('operationalKey').value.trim(),
+                durationInSeconds: parseInt(document.getElementById('durationInSeconds').value, 10)
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/banks/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                responseBox.classList.remove('hidden');
+                
+                if (response.ok) {
+                    responseBox.className = 'mt-6 p-4 rounded-lg text-xs font-mono break-all bg-emerald-950/80 border border-emerald-500/50 text-emerald-200';
+                    responseBox.innerHTML = `
+                        <strong class="text-emerald-400 block mb-1">✅ ${data.message}</strong>
+                        <div><strong>Transaction Hash:</strong></div>
+                        <div class="text-slate-300 mt-1">${data.transactionHash}</div>
+                    `;
+                } else {
+                    responseBox.className = 'mt-6 p-4 rounded-lg text-xs font-mono break-all bg-rose-950/80 border border-rose-500/50 text-rose-200';
+                    responseBox.innerHTML = `<strong class="text-rose-400 block mb-1">❌ Erro no Registo</strong> ${data.error || 'Erro desconhecido na API.'}`;
+                }
+            } catch (err) {
+                responseBox.classList.remove('hidden');
+                responseBox.className = 'mt-6 p-4 rounded-lg text-xs font-mono break-all bg-rose-950/80 border border-rose-500/50 text-rose-200';
+                responseBox.innerHTML = `<strong class="text-rose-400 block mb-1">⚠️ Falha de Conexão</strong> Não foi possível comunicar com o servidor.`;
+            } finally {
+                // Restaurar o botão
+                submitBtn.disabled = false;
+                btnText.textContent = 'Registar na Blockchain';
+                btnSpinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
