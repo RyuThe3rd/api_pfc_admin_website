@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo de Integridade Documental- Registo de Banco</title>
+    <title>Protocolo de Integridade Documental - Registo de Banco</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Gradiente fiel à imagem de referência (Azul -> Verde) */
         .bg-custom-gradient {
             background: linear-gradient(180deg, #0d72c4 0%, #188a87 50%, #269a57 100%);
         }
@@ -15,21 +14,27 @@
 </head>
 <body class="bg-custom-gradient min-h-screen flex items-center justify-center p-4 sm:p-6 text-slate-800 font-sans">
 
-    <!-- Card Principal no estilo Mobile / Clean Card -->
-    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 w-full max-w-lg">
+    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 w-full max-w-lg my-8">
         
-        <!-- Cabeçalho com Ícone Azul da Segunda Imagem -->
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-12 h-12 rounded-full bg-[#2e7df6] flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
-                <!-- Ícone de Templo / Banco -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-                </svg>
+        <!-- Cabeçalho -->
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-full bg-[#2e7df6] flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 leading-tight">Registar Instituição</h1>
+                    <p class="text-xs text-slate-500 font-medium">Consórcio Blockchain PFC</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-xl font-bold text-slate-900 leading-tight">Registar Instituição</h1>
-                <p class="text-xs text-slate-500 font-medium">Protocolo de Integridade Documental</p>
-            </div>
+
+            <!-- Botão de Auto-preenchimento via API -->
+            <button type="button" onclick="generateCredentialsFromAPI()" 
+                class="bg-blue-50 hover:bg-blue-100 text-[#0d72c4] border border-blue-200 text-xs font-bold px-3 py-2 rounded-xl transition active:scale-95 flex items-center gap-1.5 shadow-sm">
+                <span>🔑 Gerar Credenciais</span>
+            </button>
         </div>
 
         <!-- Formulário -->
@@ -60,17 +65,32 @@
                 </label>
                 <input type="text" id="managementKey" name="managementKey" required placeholder="0x..."
                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2e7df6] focus:bg-white transition placeholder:text-slate-400">
-                <span class="text-[11px] text-slate-400 mt-1 block">Endereço offline/cofre para gestão de acessos.</span>
+                <span class="text-[11px] text-slate-400 mt-1 block">Endereço de cofre para gestão administrativa.</span>
             </div>
 
-            <!-- Chave Operacional (Operational Key) -->
+            <!-- Chave Operacional (Operational Address) -->
             <div>
                 <label for="operationalKey" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
-                    Chave Operacional (Operational Key)
+                    Chave Operacional (Endereço Público)
                 </label>
                 <input type="text" id="operationalKey" name="operationalKey" required placeholder="0x..."
                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2e7df6] focus:bg-white transition placeholder:text-slate-400">
-                <span class="text-[11px] text-slate-400 mt-1 block">Endereço utilizado para assinar os extratos na API.</span>
+                <span class="text-[11px] text-slate-400 mt-1 block">Endereço que ficará registado no contrato BankRegistry.</span>
+            </div>
+
+            <!-- Cartão Alerta da Chave Privada Gerada (Apenas para o utilizador guardar) -->
+            <div id="privateKeyCard" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 transition-all">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                        ⚠️ Chave Privada Operacional (Guarde para o Core)
+                    </span>
+                    <button type="button" onclick="copyPrivateKey()" class="text-[11px] bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold px-2 py-1 rounded-md transition">
+                        📋 Copiar
+                    </button>
+                </div>
+                <input type="text" id="generatedPrivateKey" readonly 
+                    class="w-full bg-amber-100/60 border border-amber-300 rounded-lg px-3 py-2 text-xs font-mono text-amber-900 focus:outline-none select-all">
+                <span class="text-[10px] text-amber-700 mt-1 block">Esta chave privada será usada no simulator do Core Bancário para assinar extratos.</span>
             </div>
 
             <!-- Duração em Segundos -->
@@ -88,7 +108,7 @@
                 </div>
             </div>
 
-            <!-- Botão Principal com a cor Azul da Imagem -->
+            <!-- Botão Submeter -->
             <button type="submit" id="submitBtn"
                 class="w-full bg-[#2e7df6] hover:bg-[#1a6ce8] text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 mt-6 active:scale-[0.99]">
                 <span id="btnText">Registar na Blockchain</span>
@@ -105,6 +125,43 @@
 
         function setOneYear() {
             document.getElementById('durationInSeconds').value = 31536000;
+        }
+
+        // Chama o endpoint Spring Boot para obter novas credenciais
+        async function generateCredentialsFromAPI() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/v1/admin/credentials/generate`);
+                const data = await res.json();
+
+                if (res.ok && data.address) {
+                    const randomId = Math.floor(100 + Math.random() * 900);
+                    document.getElementById('bankId').value = randomId;
+                    document.getElementById('name').value = `Banco Comercial #${randomId}`;
+                    
+                    // Preenche o endereço público na operationalKey
+                    document.getElementById('operationalKey').value = data.address;
+                    
+                    // Gera um endereço aleatório simples para a managementKey
+                    document.getElementById('managementKey').value = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+                    
+                    // Exibe e preenche a Chave Privada no Cartão Alerta
+                    document.getElementById('generatedPrivateKey').value = data.privateKey;
+                    document.getElementById('privateKeyCard').classList.remove('hidden');
+
+                    setOneYear();
+                } else {
+                    alert('Erro ao gerar credenciais na API: ' + (data.error || 'Desconhecido'));
+                }
+            } catch (err) {
+                alert('Não foi possível conectar ao endpoint /api/v1/admin/credentials/generate');
+            }
+        }
+
+        function copyPrivateKey() {
+            const input = document.getElementById('generatedPrivateKey');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert('Chave Privada copiada com sucesso!');
         }
 
         document.getElementById('registerBankForm').addEventListener('submit', async (e) => {
@@ -131,14 +188,11 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/v1/banks/register`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
-
                 responseBox.classList.remove('hidden');
                 
                 if (response.ok) {
@@ -150,12 +204,12 @@
                     `;
                 } else {
                     responseBox.className = 'mt-6 p-4 rounded-2xl text-xs font-mono break-all bg-rose-50 border border-rose-200 text-rose-800';
-                    responseBox.innerHTML = `<strong class="text-rose-700 block mb-1 font-sans text-sm">❌ Erro no Registo</strong> ${data.error || 'Erro desconhecido na API.'}`;
+                    responseBox.innerHTML = `<strong class="text-rose-700 block mb-1 font-sans text-sm">❌ Erro no Registo</strong> ${data.error || 'Erro desconhecido.'}`;
                 }
             } catch (err) {
                 responseBox.classList.remove('hidden');
                 responseBox.className = 'mt-6 p-4 rounded-2xl text-xs font-mono break-all bg-amber-50 border border-amber-200 text-amber-800';
-                responseBox.innerHTML = `<strong class="text-amber-700 block mb-1 font-sans text-sm">⚠️ Falha de Conexão</strong> Não foi possível comunicar com o servidor no Cloud Run.`;
+                responseBox.innerHTML = `<strong class="text-amber-700 block mb-1 font-sans text-sm">⚠️ Falha de Conexão</strong> Erro na comunicação com o Cloud Run.`;
             } finally {
                 submitBtn.disabled = false;
                 btnText.textContent = 'Registar na Blockchain';
